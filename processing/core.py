@@ -1,15 +1,7 @@
 import pandas as pd
 import os
 from datetime import timedelta
-
-
-def load_data(inputs_folder):
-    df, tickers = load_data_and_validate_schema(inputs_folder)
-    df = process_positions_into_trades(df, tickers)
-
-    cols = [{"name": i, "id": i} for i in df.columns]
-    data = df.to_dict("records")
-    return cols, data
+import yfinance as yf
 
 
 def load_data_and_validate_schema(inputs_folder):
@@ -50,3 +42,36 @@ def get_date_values(df):
     max_date_plus_one = max_date + timedelta(1)
 
     return min_date, max_date, max_date_plus_one
+
+
+def get_prices_from_yfinance(tickers, min_date, max_date_plus_one):
+    # auto_adjust=False mimics Execution Price better as you would not adjust your Execution Price of trades
+    prices = yf.download(tickers, min_date, max_date_plus_one, auto_adjust=False)
+    prices = prices[["Low", "High"]]
+    prices = prices.stack(["Ticker"], future_stack=True).reset_index()
+
+    return prices
+
+
+def process_prices(prices):
+    prices["Date"] = pd.to_datetime(prices["Date"]).dt.date
+    prices["Price"] = prices[["Low", "High"]].mean(axis=1)
+    bad_tickers = prices.loc[prices["Price"].isna(), "Ticker"].unique().tolist()
+    prices = prices.loc[~prices["Ticker"].isin(bad_tickers)]
+
+    return prices, bad_tickers
+
+
+def load_data(inputs_folder):
+    df, tickers = load_data_and_validate_schema(inputs_folder)
+    df = process_positions_into_trades(df, tickers)
+
+    min_date, max_date, max_date_plus_one = get_date_values(df)
+
+    prices = get_prices_from_yfinance(tickers, min_date, max_date_plus_one)
+
+    prices, bad_tickers = process_prices(prices)
+
+    cols = [{"name": i, "id": i} for i in df.columns]
+    data = df.to_dict("records")
+    return cols, data
