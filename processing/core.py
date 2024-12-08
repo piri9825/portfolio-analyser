@@ -62,7 +62,31 @@ def process_prices(prices):
     return prices, bad_tickers
 
 
-def load_data(inputs_folder):
+def calculate_pnl(df, prices):
+    df = df.merge(
+        prices[["Date", "Ticker", "Price"]], on=["Date", "Ticker"], how="left"
+    )
+    df["Cashflow"] = df["Trx"] * df["Price"] * -1
+    df["PnL"] = df.groupby("Ticker")["Cashflow"].cumsum()
+
+    return df
+
+
+def calculate_portfolio_returns(df, max_date):
+    df = df.groupby("Date")["PnL"].sum().reset_index()
+    portfolio_return = df.loc[df["Date"] == max_date, "PnL"].iloc[0]
+
+    return df, portfolio_return
+
+
+def get_best_and_worst_performers(df, max_date):
+    df = df.loc[df["Date"] == max_date].sort_values("PnL", ascending=False)
+    df = pd.concat([df.head(5), df.tail(5)])
+
+    return df
+
+
+def run_pipeline(inputs_folder):
     df, tickers = load_data_and_validate_schema(inputs_folder)
     df = process_positions_into_trades(df, tickers)
 
@@ -72,6 +96,12 @@ def load_data(inputs_folder):
 
     prices, bad_tickers = process_prices(prices)
 
-    cols = [{"name": i, "id": i} for i in df.columns]
-    data = df.to_dict("records")
+    df = calculate_pnl(df, prices)
+
+    portfolio, portfolio_return = calculate_portfolio_returns(df, max_date)
+
+    performers = get_best_and_worst_performers(df, max_date)
+
+    cols = [{"name": i, "id": i} for i in portfolio.columns]
+    data = portfolio.to_dict("records")
     return cols, data

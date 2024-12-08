@@ -1,6 +1,6 @@
 import dash
 from dash import html, dash_table, Input, Output
-from processing import load_data
+from processing import run_pipeline
 
 app = dash.Dash(__name__)
 server = app.server
@@ -21,7 +21,7 @@ app.layout = html.Div(
 )
 
 try:
-    cols, data = load_data(inputs_folder)
+    cols, data = run_pipeline(inputs_folder)
     error_message = ""
 except ValueError as e:
     error_message = f"Error: {str(e)}"
@@ -38,7 +38,7 @@ except ValueError as e:
 )
 def refresh_data(n_clicks):
     try:
-        cols, data = load_data(inputs_folder)
+        cols, data = run_pipeline(inputs_folder)
         return cols, data, ""
     except ValueError as e:
         error_message = f"Error: {str(e)}"

@@ -1,5 +1,10 @@
 import pandas as pd
-from processing import process_positions_into_trades, get_date_values, process_prices
+from processing import (
+    process_positions_into_trades,
+    get_date_values,
+    process_prices,
+    calculate_pnl,
+)
 from datetime import date
 
 
@@ -115,3 +120,47 @@ def test_process_prices_bad_tickers():
 
     assert output.empty
     assert bad_tickers == ["BADTICKER"]
+
+
+def test_calculate_pnl():
+    input_df = pd.DataFrame(
+        {
+            "Date": pd.to_datetime(
+                [
+                    "2024-08-30",
+                    "2024-09-03",
+                    "2024-09-04",
+                    "2024-09-05",
+                    "2024-09-06",
+                ]
+            ).date,
+            "Ticker": ["AAPL", "AAPL", "AAPL", "AAPL", "AAPL"],
+            "Trx": [0.0, 0.0, 13.0, 11.0, -24.0],
+        }
+    )
+
+    input_prices = pd.DataFrame(
+        {
+            "Date": pd.to_datetime(
+                [
+                    "2024-08-30",
+                    "2024-09-03",
+                    "2024-09-04",
+                    "2024-09-05",
+                    "2024-09-06",
+                ]
+            ).date,
+            "Ticker": ["AAPL", "AAPL", "AAPL", "AAPL", "AAPL"],
+            "Price": [228.688398, 224.837628, 219.388632, 223.254369, 222.260477],
+        }
+    )
+
+    df = calculate_pnl(input_df, input_prices)
+
+    assert df["PnL"].tolist() == [
+        0,
+        0,
+        -2852.052216,
+        -5307.850275,
+        26.4011730000002,
+    ]
