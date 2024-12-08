@@ -11,6 +11,7 @@ Analyse portfolio of long only equities.
 2. Go to the cloned repository directory
 3. Create a folder named inputs and drop your portfolio csv here. Example portfolio.csv file in docker_inputs folder. There should only be one csv in the inputs folder.
 4. Build the Docker image and run the container:
+
 Linux:
 ```bash
 docker build -t portfolioanalyser .

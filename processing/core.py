@@ -21,7 +21,7 @@ def load_data_and_validate_schema(inputs_folder):
 
     if non_num_tickers:
         raise ValueError(
-            f"The following tickers need to contain numbers: {non_num_tickers}"
+            f"The following ticker columns need to contain numbers only: {non_num_tickers}"
         )
 
     return df, tickers
