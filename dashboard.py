@@ -64,7 +64,7 @@ def refresh_data(n_clicks):
         portfolio_return = f"${portfolio_return:,.2f}"
 
         if bad_tickers:
-            bad_tickers = f"The following tickers were not able to be processed properly: {bad_tickers}"
+            bad_tickers = f"Could not pull prices for: {bad_tickers}. These positions have been ignored."
         else:
             bad_tickers = ""
 
