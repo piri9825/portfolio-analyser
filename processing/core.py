@@ -63,24 +63,26 @@ def process_prices(prices):
 
 
 def calculate_pnl(df, prices):
-    df = df.merge(
-        prices[["Date", "Ticker", "Price"]], on=["Date", "Ticker"], how="left"
-    )
+    df = df.merge(prices[["Date", "Ticker", "Price"]], on=["Date", "Ticker"])
     df["Cashflow"] = df["Trx"] * df["Price"] * -1
     df["PnL"] = df.groupby("Ticker")["Cashflow"].cumsum()
+    df["PnL"] = df["PnL"].round(2)
 
     return df
 
 
 def calculate_portfolio_returns(df, max_date):
     df = df.groupby("Date")["PnL"].sum().reset_index()
+    df["PnL"] = df["PnL"].round(2)
     portfolio_return = df.loc[df["Date"] == max_date, "PnL"].iloc[0]
 
     return df, portfolio_return
 
 
 def get_best_and_worst_performers(df, max_date):
-    df = df.loc[df["Date"] == max_date].sort_values("PnL", ascending=False)
+    df = df.loc[df["Date"] == max_date, ["Ticker", "PnL"]].sort_values(
+        "PnL", ascending=False
+    )
     df = pd.concat([df.head(5), df.tail(5)])
 
     return df
@@ -102,6 +104,6 @@ def run_pipeline(inputs_folder):
 
     performers = get_best_and_worst_performers(df, max_date)
 
-    cols = [{"name": i, "id": i} for i in portfolio.columns]
-    data = portfolio.to_dict("records")
-    return cols, data
+    cols = [{"name": i, "id": i} for i in performers.columns]
+    data = performers.to_dict("records")
+    return cols, data, portfolio, portfolio_return, bad_tickers
