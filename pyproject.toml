@@ -9,6 +9,8 @@ readme = "README.md"
 python = "3.10.x"
 pandas = "^2.2.3"
 dash = "^2.18.2"
+yfinance = "^0.2.50"
+pytest = "^8.3.4"
 
 
 [build-system]

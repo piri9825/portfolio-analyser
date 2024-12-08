@@ -1,1 +1,1 @@
-from .core import load_data
+from .core import load_data, process_positions_into_trades
