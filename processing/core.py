@@ -30,6 +30,7 @@ def load_data_and_validate_schema(inputs_folder):
 def process_positions_into_trades(df, tickers):
     df["Date"] = pd.to_datetime(df["Date"]).dt.date
     df = df.sort_values("Date")
+    df.iloc[-1, 1:] = 0
     df[tickers] = df[tickers].diff(axis=0).fillna(0)
     df = df.melt(id_vars=["Date"], var_name="Ticker", value_name="Trx")
 
@@ -46,7 +47,7 @@ def get_date_values(df):
 
 def get_prices_from_yfinance(tickers, min_date, max_date_plus_one):
     # auto_adjust=False mimics Execution Price better as you would not adjust your Execution Price of trades
-    prices = yf.download(tickers, min_date, max_date_plus_one, auto_adjust=False)
+    prices = yf.download(tickers, min_date, max_date_plus_one, auto_adjust=True)
     prices = prices[["Low", "High"]]
     prices = prices.stack(["Ticker"], future_stack=True).reset_index()
 
