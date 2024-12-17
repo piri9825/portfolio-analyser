@@ -88,9 +88,10 @@ def get_best_and_worst_performers(df, max_date):
     return df
 
 
-def run_pipeline(inputs_folder):
-    df, tickers = load_data_and_validate_schema(inputs_folder)
+def run_pipeline(df: pd.DataFrame, tickers: list[str]):
+    # df, tickers = load_data_and_validate_schema(inputs_folder)
     df = process_positions_into_trades(df, tickers)
+    print(df)
 
     min_date, max_date, max_date_plus_one = get_date_values(df)
 
