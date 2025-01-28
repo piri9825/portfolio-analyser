@@ -1,19 +1,11 @@
 import pandas as pd
-import os
 from datetime import timedelta
 import yfinance as yf
 
 
-def load_data_and_validate_schema(inputs_folder):
-    filenames = [f for f in os.listdir(inputs_folder) if f.endswith(".csv")]
-    if len(filenames) != 1:
-        raise ValueError("Need a singular .csv file in the inputs folder.")
-
-    filename = filenames[0]
-    df = pd.read_csv(f"{inputs_folder}/{filename}")
-
+def validate_schema(df):
     if "Date" not in df.columns:
-        raise ValueError('Missing column "Date" in csv.')
+        raise ValueError('Missing column "Date" in file.')
 
     tickers = [col for col in df.columns if col != "Date"]
     num_tickers = df[tickers].select_dtypes("number").columns.tolist()
@@ -103,7 +95,7 @@ def calculate_portfolio_value_over_time(df, prices):
 
 
 def run_pipeline(inputs_folder):
-    pos, tickers = load_data_and_validate_schema(inputs_folder)
+    pos, tickers = validate_schema(inputs_folder)
     df = process_positions_into_trades(pos, tickers)
 
     min_date, max_date, max_date_plus_one = get_date_values(df)
