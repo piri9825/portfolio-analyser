@@ -46,7 +46,7 @@ def get_date_values(df):
 
 
 def get_prices_from_yfinance(tickers, min_date, max_date_plus_one):
-    # auto_adjust=False mimics Execution Price better as you would not adjust your Execution Price of trades
+    # auto_adjust=False mimics Execution Price better as you would not adjust your Execution Price of trades unless you also adjust the buy/sell quantity
     prices = yf.download(tickers, min_date, max_date_plus_one, auto_adjust=True)
     prices = prices[["Low", "High"]]
     prices = prices.stack(["Ticker"], future_stack=True).reset_index()
@@ -77,7 +77,7 @@ def calculate_portfolio_returns(df, max_date):
     df["PnL"] = df["PnL"].round(2)
     portfolio_return = df.loc[df["Date"] == max_date, "PnL"].iloc[0]
 
-    return df, portfolio_return
+    return portfolio_return
 
 
 def get_best_and_worst_performers(df, max_date):
@@ -89,9 +89,22 @@ def get_best_and_worst_performers(df, max_date):
     return df
 
 
+def calculate_portfolio_value_over_time(df, prices):
+    df["Date"] = pd.to_datetime(df["Date"]).dt.date
+    df = df.sort_values("Date")
+    df = df.melt(id_vars=["Date"], var_name="Ticker", value_name="Position")
+
+    df = df.merge(prices[["Date", "Ticker", "Price"]], on=["Date", "Ticker"])
+    df["PortfolioValue"] = df["Position"] * df["Price"]
+    df = df.groupby(["Date"])["PortfolioValue"].sum().reset_index()
+    df["PortfolioValue"] = df["PortfolioValue"].round(2)
+
+    return df
+
+
 def run_pipeline(inputs_folder):
-    df, tickers = load_data_and_validate_schema(inputs_folder)
-    df = process_positions_into_trades(df, tickers)
+    pos, tickers = load_data_and_validate_schema(inputs_folder)
+    df = process_positions_into_trades(pos, tickers)
 
     min_date, max_date, max_date_plus_one = get_date_values(df)
 
@@ -101,10 +114,13 @@ def run_pipeline(inputs_folder):
 
     df = calculate_pnl(df, prices)
 
-    portfolio, portfolio_return = calculate_portfolio_returns(df, max_date)
+    portfolio_return = calculate_portfolio_returns(df, max_date)
 
     performers = get_best_and_worst_performers(df, max_date)
 
     cols = [{"name": i, "id": i} for i in performers.columns]
     data = performers.to_dict("records")
+
+    portfolio = calculate_portfolio_value_over_time(pos, prices)
+
     return cols, data, portfolio, portfolio_return, bad_tickers

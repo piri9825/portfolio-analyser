@@ -26,7 +26,7 @@ app.layout = html.Div(
                 "margin": "10px auto",
             },
         ),
-        html.H2("Portfolio Performance over Time"),
+        html.H2("Portfolio Value over Time"),
         dcc.Graph(id="time-series-chart"),
         html.H2("Best and Worst Performers"),
         dash_table.DataTable(
@@ -56,8 +56,8 @@ def refresh_data(n_clicks):
         fig = px.line(
             portfolio,
             x="Date",
-            y="PnL",
-            labels={"Date": "Date", "PnL": "Profit and Loss"},
+            y="PortfolioValue",
+            labels={"Date": "Date", "PortfolioValue": "Portfolio Value"},
         )
         fig.update_traces(mode="lines+markers")
 
