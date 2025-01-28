@@ -1,7 +1,6 @@
 .venv
 tests
 inputs
-README.md
 .gitignore
 .pytest_cache
 .ruff_cache
