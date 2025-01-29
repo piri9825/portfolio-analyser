@@ -76,9 +76,11 @@ def get_best_and_worst_performers(df, max_date):
     df = df.loc[df["Date"] == max_date, ["Ticker", "PnL"]].sort_values(
         "PnL", ascending=False
     )
-    df = pd.concat([df.head(5), df.tail(5)])
 
-    return df
+    winners = df.head(5).to_dict("records")
+    losers = df.tail(5).sort_values("PnL").to_dict("records")
+
+    return winners, losers
 
 
 def calculate_portfolio_value_over_time(df, prices):
@@ -108,11 +110,8 @@ def run_pipeline(inputs_folder):
 
     portfolio_return = calculate_portfolio_returns(df, max_date)
 
-    performers = get_best_and_worst_performers(df, max_date)
-
-    cols = [{"name": i, "id": i} for i in performers.columns]
-    data = performers.to_dict("records")
+    winners, losers = get_best_and_worst_performers(df, max_date)
 
     portfolio = calculate_portfolio_value_over_time(pos, prices)
 
-    return cols, data, portfolio, portfolio_return, bad_tickers
+    return winners, losers, portfolio, portfolio_return, bad_tickers

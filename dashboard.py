@@ -29,8 +29,6 @@ def process_file(contents, filename):
         )
 
 
-cols, data = [], []
-
 app.layout = html.Div(
     [
         html.H1("Portfolio Analysis"),
@@ -51,21 +49,27 @@ app.layout = html.Div(
             multiple=False,
         ),
         html.Div(
-            [html.H3("Overall P&L:"), html.H1(id="final-pnl-display")],
-            style={
-                "border": "1px solid #ccc",
-                "padding": "20px",
-                "borderRadius": "10px",
-                "textAlign": "center",
-                "width": "200px",
-                "margin": "10px auto",
-            },
-        ),
-        html.H2("Portfolio Value over Time"),
-        dcc.Graph(id="time-series-chart"),
-        html.H2("Best and Worst Performers"),
-        dash_table.DataTable(
-            id="data-table", columns=cols, data=data, style_table={"width": "50%"}
+            id="content",
+            children=[
+                html.Div(
+                    [html.H3("Overall P&L:"), html.H1(id="final-pnl-display")],
+                    style={
+                        "border": "1px solid #ccc",
+                        "padding": "20px",
+                        "borderRadius": "10px",
+                        "textAlign": "center",
+                        "width": "200px",
+                        "margin": "10px auto",
+                    },
+                ),
+                html.H2("Portfolio Value over Time"),
+                dcc.Graph(id="time-series-chart"),
+                html.H2("Best Performers"),
+                html.Div(id="winners"),
+                html.H2("Worst Performers"),
+                html.Div(id="losers"),
+            ],
+            style={"display": "none"},
         ),
     ]
 )
@@ -73,10 +77,11 @@ app.layout = html.Div(
 
 @app.callback(
     [
-        Output("data-table", "columns"),
-        Output("data-table", "data"),
+        Output("winners", "children"),
+        Output("losers", "children"),
         Output("time-series-chart", "figure"),
         Output("final-pnl-display", "children"),
+        Output("content", "style"),
         Output("error-message", "children"),
     ],
     Input("upload-data", "contents"),
@@ -88,7 +93,10 @@ def refresh_data(contents, filename):
 
     try:
         df = process_file(contents, filename)
-        cols, data, portfolio, portfolio_return, bad_tickers = run_pipeline(df)
+        winners, losers, portfolio, portfolio_return, bad_tickers = run_pipeline(df)
+
+        winners = dash_table.DataTable(data=winners)
+        losers = dash_table.DataTable(data=losers)
 
         fig = px.line(
             portfolio,
@@ -105,11 +113,11 @@ def refresh_data(contents, filename):
         else:
             bad_tickers = ""
 
-        return cols, data, fig, portfolio_return, bad_tickers
+        return winners, losers, fig, portfolio_return, {"display": "block"}, bad_tickers
 
     except ValueError as e:
         error_message = f"Error: {str(e)}"
-        return [], [], {}, None, error_message
+        return {}, {}, {}, None, {"display": "none"}, error_message
 
 
 if __name__ == "__main__":
