@@ -12,6 +12,7 @@ pandas = "^2.2.3"
 dash = "^2.18.2"
 yfinance = "^0.2.50"
 openpyxl = "^3.1.5"
+dash-mantine-components = "^0.15.2"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.4"

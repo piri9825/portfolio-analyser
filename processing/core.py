@@ -96,8 +96,8 @@ def calculate_portfolio_value_over_time(df, prices):
     return df
 
 
-def run_pipeline(inputs_folder):
-    pos, tickers = validate_schema(inputs_folder)
+def run_pipeline(df):
+    pos, tickers = validate_schema(df)
     df = process_positions_into_trades(pos, tickers)
 
     min_date, max_date, max_date_plus_one = get_date_values(df)

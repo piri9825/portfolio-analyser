@@ -225,6 +225,23 @@ files = [
 ]
 
 [[package]]
+name = "dash-mantine-components"
+version = "0.15.2"
+description = "Plotly Dash Components based on Mantine"
+optional = false
+python-versions = "*"
+files = [
+    {file = "dash_mantine_components-0.15.2-py3-none-any.whl", hash = "sha256:1a73456037e5f691143d3ca6e9afda23bb1b35148393322deeefb3eb78db0f92"},
+    {file = "dash_mantine_components-0.15.2.tar.gz", hash = "sha256:28a700aa67240cc8c8c23900912d449a0a636b9cb693a23f8bea23cadde511ef"},
+]
+
+[package.dependencies]
+dash = ">=2"
+
+[package.extras]
+dev = ["black", "build", "dash[ci,dev,testing] (>=2.0)", "pytest (<8.1.0)", "pyyaml (>=5.0)", "selenium (<4.3.0)", "wheel"]
+
+[[package]]
 name = "dash-table"
 version = "5.0.0"
 description = "Dash table"
@@ -1228,4 +1245,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "33299d735044127f884b7a21676fc3cb7cbf2fe62db793a9eebed6bfae763aba"
+content-hash = "fc52c9bb7021f2be8b2d55a7554fe7ede42051e11a5c91c6f6c8290e9bbbd51b"

@@ -1,5 +1,4 @@
-import dash
-from dash import html, dash_table, Input, Output, dcc
+from dash import _dash_renderer, Dash, html, dash_table, Input, Output, dcc
 from dash.exceptions import PreventUpdate
 import base64
 import pandas as pd
@@ -7,9 +6,12 @@ from pathlib import Path
 import io
 from plistlib import InvalidFileException
 import plotly.express as px
+import dash_mantine_components as dmc
 from processing import run_pipeline
 
-app = dash.Dash(__name__)
+_dash_renderer._set_react_version("18.2.0")
+
+app = Dash(__name__, external_stylesheets=dmc.styles.ALL)
 server = app.server
 
 
@@ -28,52 +30,39 @@ def process_file(contents, filename):
             f"Ensure file is one of the following types: {list(read_functions.keys())}"
         )
 
-
-app.layout = html.Div(
-    [
-        html.H1("Portfolio Analysis"),
-        html.Div(id="error-message", style={"color": "red"}),
-        dcc.Upload(
+app.layout = dmc.MantineProvider(
+    forceColorScheme="light",
+    children=[
+        dmc.Box(dmc.Center(dmc.Title("Portfolio Analysis", order=1)), p=30),
+        dmc.Box(id="error-message", style={"color": "red"}),
+        dmc.Box(dmc.Center(dcc.Upload(
             id="upload-data",
-            children=html.Div(["Drag and Drop or ", html.A("Select a File")]),
-            style={
-                "width": "50%",
-                "height": "60px",
-                "lineHeight": "60px",
-                "borderWidth": "1px",
-                "borderStyle": "dashed",
-                "borderRadius": "5px",
-                "textAlign": "center",
-                "margin": "auto",
-            },
+            children=dmc.Box(["Drag and Drop or ", html.A("Select a File")],bd="2px dashed blue.6", p=30),
             multiple=False,
-        ),
-        html.Div(
+        ))),
+        dmc.Box(
             id="content",
-            children=[
-                html.Div(
-                    [html.H3("Overall P&L:"), html.H1(id="final-pnl-display")],
-                    style={
-                        "border": "1px solid #ccc",
-                        "padding": "20px",
-                        "borderRadius": "10px",
-                        "textAlign": "center",
-                        "width": "200px",
-                        "margin": "10px auto",
-                    },
+            children = [dmc.Box(
+                    [dmc.Title("Overall P&L:", order=3), dmc.Title(id="final-pnl-display")], 
+                    bd="1px solid #ccc",
+                    p=20, 
+                    ta='center',
+                    m='15px auto',
                 ),
-                html.H2("Portfolio Value over Time"),
+                dmc.Title("Portfolio Value over Time", order=2),
                 dcc.Graph(id="time-series-chart"),
-                html.H2("Best Performers"),
-                html.Div(id="winners"),
-                html.H2("Worst Performers"),
+                dmc.Grid([
+                dmc.GridCol([
+                dmc.Title("Best Performers", order=2),
+                dmc.Box(id="winners")], span=6),
+                dmc.GridCol([
+                dmc.Title("Worst Performers", order=2),
                 html.Div(id="losers"),
-            ],
+                ], span=6
+                )
+            ])],
             style={"display": "none"},
-        ),
-    ]
-)
-
+        )])
 
 @app.callback(
     [
@@ -121,4 +110,4 @@ def refresh_data(contents, filename):
 
 
 if __name__ == "__main__":
-    app.run_server(debug=True, host="0.0.0.0", port=8050)
+    app.run_server(debug=False, host="0.0.0.0", port=8050)
