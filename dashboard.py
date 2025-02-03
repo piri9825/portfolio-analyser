@@ -30,39 +30,64 @@ def process_file(contents, filename):
             f"Ensure file is one of the following types: {list(read_functions.keys())}"
         )
 
+
 app.layout = dmc.MantineProvider(
     forceColorScheme="light",
     children=[
         dmc.Box(dmc.Center(dmc.Title("Portfolio Analysis", order=1)), p=30),
         dmc.Box(id="error-message", style={"color": "red"}),
-        dmc.Box(dmc.Center(dcc.Upload(
-            id="upload-data",
-            children=dmc.Box(["Drag and Drop or ", html.A("Select a File")],bd="2px dashed blue.6", p=30),
-            multiple=False,
-        ))),
+        dmc.Box(
+            dmc.Center(
+                dcc.Upload(
+                    id="upload-data",
+                    children=dmc.Box(
+                        ["Drag and Drop or ", html.A("Select a File")],
+                        bd="2px dashed blue.6",
+                        p=30,
+                    ),
+                    multiple=False,
+                )
+            )
+        ),
         dmc.Box(
             id="content",
-            children = [dmc.Box(
-                    [dmc.Title("Overall P&L:", order=3), dmc.Title(id="final-pnl-display")], 
+            children=[
+                dmc.Box(
+                    [
+                        dmc.Title("Overall P&L:", order=3),
+                        dmc.Title(id="final-pnl-display"),
+                    ],
                     bd="1px solid #ccc",
-                    p=20, 
-                    ta='center',
-                    m='15px auto',
+                    p=20,
+                    ta="center",
+                    m="15px auto",
                 ),
                 dmc.Title("Portfolio Value over Time", order=2),
                 dcc.Graph(id="time-series-chart"),
-                dmc.Grid([
-                dmc.GridCol([
-                dmc.Title("Best Performers", order=2),
-                dmc.Box(id="winners")], span=6),
-                dmc.GridCol([
-                dmc.Title("Worst Performers", order=2),
-                html.Div(id="losers"),
-                ], span=6
-                )
-            ])],
+                dmc.Grid(
+                    [
+                        dmc.GridCol(
+                            [
+                                dmc.Title("Best Performers", order=2),
+                                dmc.Box(id="winners"),
+                            ],
+                            span=6,
+                        ),
+                        dmc.GridCol(
+                            [
+                                dmc.Title("Worst Performers", order=2),
+                                html.Div(id="losers"),
+                            ],
+                            span=6,
+                        ),
+                    ]
+                ),
+            ],
             style={"display": "none"},
-        )])
+        ),
+    ],
+)
+
 
 @app.callback(
     [
