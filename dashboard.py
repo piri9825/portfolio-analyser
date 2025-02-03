@@ -7,6 +7,7 @@ import io
 from plistlib import InvalidFileException
 import plotly.express as px
 import dash_mantine_components as dmc
+import plotly.graph_objects as go
 from processing import run_pipeline
 
 _dash_renderer._set_react_version("18.2.0")
@@ -15,7 +16,7 @@ app = Dash(__name__, external_stylesheets=dmc.styles.ALL)
 server = app.server
 
 
-def process_file(contents, filename):
+def process_file(contents: str, filename: str) -> pd.DataFrame:
     read_functions = {".csv": pd.read_csv, ".xlsx": pd.read_excel}
     suffix = Path(filename).suffix
 
@@ -101,7 +102,9 @@ app.layout = dmc.MantineProvider(
     Input("upload-data", "contents"),
     Input("upload-data", "filename"),
 )
-def refresh_data(contents, filename):
+def refresh_data(
+    contents: str, filename: str
+) -> tuple[dash_table.DataTable, dash_table.DataTable, go.Figure, str, dict, str]:
     if not filename:
         raise PreventUpdate()
 

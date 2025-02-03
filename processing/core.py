@@ -1,9 +1,9 @@
 import pandas as pd
-from datetime import timedelta
+from datetime import timedelta, date
 import yfinance as yf
 
 
-def validate_schema(df):
+def validate_schema(df: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
     if "Date" not in df.columns:
         raise ValueError('Missing column "Date" in file.')
 
@@ -19,7 +19,7 @@ def validate_schema(df):
     return df, tickers
 
 
-def process_positions_into_trades(df, tickers):
+def process_positions_into_trades(df: pd.DataFrame, tickers: list[str]) -> pd.DataFrame:
     df["Date"] = pd.to_datetime(df["Date"]).dt.date
     df = df.sort_values("Date")
     df.iloc[-1, 1:] = 0
@@ -29,7 +29,7 @@ def process_positions_into_trades(df, tickers):
     return df
 
 
-def get_date_values(df):
+def get_date_values(df: pd.DataFrame) -> tuple[date, date, date]:
     min_date = df["Date"].min()
     max_date = df["Date"].max()
     max_date_plus_one = max_date + timedelta(1)
@@ -37,7 +37,9 @@ def get_date_values(df):
     return min_date, max_date, max_date_plus_one
 
 
-def get_prices_from_yfinance(tickers, min_date, max_date_plus_one):
+def get_prices_from_yfinance(
+    tickers: list[str], min_date: date, max_date_plus_one: date
+) -> pd.DataFrame:
     # auto_adjust=False mimics Execution Price better as you would not adjust your Execution Price of trades unless you also adjust the buy/sell quantity
     prices = yf.download(tickers, min_date, max_date_plus_one, auto_adjust=True)
     prices = prices[["Low", "High"]]
@@ -46,7 +48,7 @@ def get_prices_from_yfinance(tickers, min_date, max_date_plus_one):
     return prices
 
 
-def process_prices(prices):
+def process_prices(prices: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
     prices["Date"] = pd.to_datetime(prices["Date"]).dt.date
     prices["Price"] = prices[["Low", "High"]].mean(axis=1)
     bad_tickers = prices.loc[prices["Price"].isna(), "Ticker"].unique().tolist()
@@ -55,7 +57,7 @@ def process_prices(prices):
     return prices, bad_tickers
 
 
-def calculate_pnl(df, prices):
+def calculate_pnl(df: pd.DataFrame, prices: pd.DataFrame) -> pd.DataFrame:
     df = df.merge(prices[["Date", "Ticker", "Price"]], on=["Date", "Ticker"])
     df["Cashflow"] = df["Trx"] * df["Price"] * -1
     df["PnL"] = df.groupby("Ticker")["Cashflow"].cumsum()
@@ -64,7 +66,7 @@ def calculate_pnl(df, prices):
     return df
 
 
-def calculate_portfolio_returns(df, max_date):
+def calculate_portfolio_returns(df: pd.DataFrame, max_date: date) -> float:
     df = df.groupby("Date")["PnL"].sum().reset_index()
     df["PnL"] = df["PnL"].round(2)
     portfolio_return = df.loc[df["Date"] == max_date, "PnL"].iloc[0]
@@ -72,7 +74,9 @@ def calculate_portfolio_returns(df, max_date):
     return portfolio_return
 
 
-def get_best_and_worst_performers(df, max_date):
+def get_best_and_worst_performers(
+    df: pd.DataFrame, max_date: date
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     df = df.loc[df["Date"] == max_date, ["Ticker", "PnL"]].sort_values(
         "PnL", ascending=False
     )
@@ -83,7 +87,9 @@ def get_best_and_worst_performers(df, max_date):
     return winners, losers
 
 
-def calculate_portfolio_value_over_time(df, prices):
+def calculate_portfolio_value_over_time(
+    df: pd.DataFrame, prices: pd.DataFrame
+) -> pd.DataFrame:
     df["Date"] = pd.to_datetime(df["Date"]).dt.date
     df = df.sort_values("Date")
     df = df.melt(id_vars=["Date"], var_name="Ticker", value_name="Position")
@@ -96,7 +102,9 @@ def calculate_portfolio_value_over_time(df, prices):
     return df
 
 
-def run_pipeline(df):
+def run_pipeline(
+    df: pd.DataFrame,
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, float, str]:
     pos, tickers = validate_schema(df)
     df = process_positions_into_trades(pos, tickers)
 
